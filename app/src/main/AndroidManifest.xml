@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClinicPA">
-        <activity android:name=".BerandaActivity"></activity>
+        <activity android:name=".loginregister.ResetPasswordActivity"></activity>
+        <activity android:name=".BerandaActivity" />
         <activity android:name=".loginregister.RegisterActivity" />
         <activity android:name=".loginregister.LoginActivity">
             <intent-filter>
