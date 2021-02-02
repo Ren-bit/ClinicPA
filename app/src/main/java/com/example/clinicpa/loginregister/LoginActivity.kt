@@ -5,15 +5,18 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Patterns
 import android.widget.Toast
+import com.example.clinicpa.AdminDashboard
 import com.example.clinicpa.BerandaActivity
 import com.example.clinicpa.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_login.*
 
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var databaseReference: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,22 +63,83 @@ class LoginActivity : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) {
                 if (it.isSuccessful) {
-                    Intent(this@LoginActivity, BerandaActivity::class.java).also { intent ->
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
+                    val uid = auth.currentUser?.uid
+                    databaseReference = FirebaseDatabase.getInstance().reference
+                    uid?.let { it1 ->
+                        databaseReference.child("Users").child(it1).child("userType")
+                            .addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val userType = snapshot.getValue().hashCode()
+                                    if (userType == 0) {
+                                        Intent(
+                                            this@LoginActivity,
+                                            BerandaActivity::class.java
+                                        ).also { intent ->
+                                            intent.flags =
+                                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                            startActivity(intent)
+                                        }
+                                    }
+                                    if (userType == 1) {
+                                        Intent(
+                                            this@LoginActivity,
+                                            AdminDashboard::class.java
+                                        ).also { intent ->
+                                            intent.flags =
+                                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                            startActivity(intent)
+                                        }
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    TODO("Not yet implemented")
+                                }
+
+                            })
                     }
                 } else {
                     Toast.makeText(this, "${it.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }
+
     override fun onStart() {
         super.onStart()
-        if (auth.currentUser != null){
-            Intent(this@LoginActivity, BerandaActivity::class.java).also { intent ->
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-            }
+        val uid = auth.currentUser?.uid
+        databaseReference = FirebaseDatabase.getInstance().reference
+        uid?.let { it1 ->
+            databaseReference.child("Users").child(it1).child("userType")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val userType = snapshot.getValue().hashCode()
+                        if (userType == 0) {
+                            Intent(
+                                this@LoginActivity,
+                                BerandaActivity::class.java
+                            ).also { intent ->
+                                intent.flags =
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
+                            }
+                        }
+                        if (userType == 1) {
+                            Intent(
+                                this@LoginActivity,
+                                AdminDashboard::class.java
+                            ).also { intent ->
+                                intent.flags =
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
+                            }
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        TODO("Not yet implemented")
+                    }
+
+                })
         }
     }
 }
